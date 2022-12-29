@@ -5,6 +5,9 @@ from selection_methods import proportional_method, stochastic_residual_method, t
 from test_functions import circle_function
 from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen
 from crossover import pmx
+from substitution_strategy import full_sub_strategy, \
+    part_reproduction_elite_sub_strategy, part_reproduction_random_sub_strategy, \
+    part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy
 
 
 class Agent:
@@ -20,6 +23,20 @@ class Agent:
             return f"[{self.vector.round(decimals=3)}, {round(self.fitness_value, 3)}]"
         else:
             return f"[{self.vector.round(decimals=3)}"
+
+    def __eq__(self, other):
+        return np.array_equal(self.vector, other.vector)
+
+    def fen_similarity(self, other):
+        return np.sum(np.abs(np.subtract(self.vector, other.vector)))
+
+    def gen_similarity(self, other):
+        diff_counter = 0
+        for i in range(len(self.vector)):
+            for j in range(len(self.vector[i])):
+                if self.vector[i][j] != other.vector[i][j]:
+                    diff_counter += 1
+        return diff_counter
 
 
 def generate_starting_population(n_agents: int, limitations: np.ndarray) -> np.ndarray:
@@ -73,10 +90,20 @@ def main(fitness_function: callable,
 # main()
 
 limits = np.array([[-10, 10], [-1, 1]])
-pop = generate_starting_population(10, limits)
-calculate_fitness_function(circle_function, pop)
-for i in range(10):
-    mutation_real_fen(pop, limits, mutation_probability=1)
+parents = generate_starting_population(5, limits)
+calculate_fitness_function(circle_function, parents)
+children = generate_starting_population(1, limits)
+calculate_fitness_function(circle_function, children)
+
+print(parents)
+print(children)
+new_population = part_reproduction_similar_agents_fen_sub_strategy(parents, children)
+print(new_population)
+
+
+a = Agent(np.array(["0b101010", "0b11101010", "0b1110111"]))
+b = Agent(np.array(["0b111010", "0b11001010", "0b1110111"]))
+print(a.gen_similarity(b))
 
 # # for testing
 # def fit_func(agents):
@@ -94,6 +121,6 @@ for i in range(10):
 # tournament_method(AGENTS)
 # threshold_method(AGENTS, True, 5)
 # # rank_method(AGENTS, True, True, 0, 1, 1) # moze zadziała z dobrze dobranymi parametrami xd
-popul = np.array([Agent(np.array([4, 2, 8, 7, 5, 9, 1, 3, 6])), Agent(np.array([1, 9, 7, 5, 4, 6, 8, 2, 3]))])
-pmx(popul)
-print(popul)
+# popul = np.array([Agent(np.array([4, 2, 8, 7, 5, 9, 1, 3, 6])), Agent(np.array([1, 9, 7, 5, 4, 6, 8, 2, 3]))])
+# pmx(popul)
+# print(popul)
