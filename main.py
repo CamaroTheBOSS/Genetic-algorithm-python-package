@@ -4,7 +4,7 @@ from selection_methods import proportional_method, stochastic_residual_method, t
     rank_method
 from test_functions import circle_function
 from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen
-from crossover import pmx
+from crossover import pmx, arithmetic_crossover, mixed_crossover
 from substitution_strategy import full_sub_strategy, \
     part_reproduction_elite_sub_strategy, part_reproduction_random_sub_strategy, \
     part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy

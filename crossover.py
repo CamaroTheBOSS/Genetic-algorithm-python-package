@@ -46,3 +46,27 @@ def pmx(population: np.ndarray):
 
         parents1[i].vector = temp1
         parents2[i].vector = temp2
+
+
+def arithmetic_crossover(population: np.ndarray):
+    np.random.shuffle(population)
+    parents1, parents2 = np.array_split(population, 2)
+    for i in range(min(len(parents1), len(parents2))):
+        a = np.random.rand()
+        temp1 = a * parents1[i].vector + (1 - a) * parents2[i].vector
+        temp2 = a * parents2[i].vector + (1 - a) * parents1[i].vector
+        parents1[i].vector = temp1
+        parents2[i].vector = temp2
+
+
+def mixed_crossover(population: np.ndarray):
+    np.random.shuffle(population)
+    parents1, parents2 = np.array_split(population, 2)
+    for i in range(min(len(parents1), len(parents2))):
+        temp1, temp2 = parents1[i].vector, parents2[i].vector
+        x_point = np.random.randint(len(parents1[i].vector))
+        a = np.random.rand()
+        temp1[x_point:] = a * parents1[i].vector[x_point:] + (1 - a) * parents2[i].vector[x_point:]
+        temp2[x_point:] = a * parents2[i].vector[x_point:] + (1 - a) * parents1[i].vector[x_point:]
+        parents1[i].vector = temp1
+        parents2[i].vector = temp2
