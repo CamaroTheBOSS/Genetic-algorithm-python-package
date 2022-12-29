@@ -3,7 +3,6 @@ from copy import deepcopy
 
 
 def proportional_method(population: np.ndarray, selection_probability: np.ndarray = None) -> np.ndarray:
-
     n = len(population)
     if selection_probability is None:
         fitness_values = np.array([agent.fitness_value for agent in population])

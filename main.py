@@ -1,14 +1,17 @@
+import copy
+
 import numpy as np
 import random
 from selection_methods import proportional_method, stochastic_residual_method, threshold_method, tournament_method, \
     rank_method
-from test_functions import circle_function, quadratic_function
+from test_functions import circle_function, quadratic_function, dummy
 from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen
 from crossover import pmx, arithmetic_crossover, mixed_crossover
 from substitution_strategy import full_sub_strategy, \
     part_reproduction_elite_sub_strategy, part_reproduction_random_sub_strategy, \
     part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy
 from scaling import linear, sigma_clipping, exponential
+from wrappers import OptimizationTask
 
 
 class Agent:
@@ -21,9 +24,9 @@ class Agent:
         if self.fitness_value is not None:
             if isinstance(self.vector[0], str):
                 return f"[{self.vector}, {round(self.fitness_value, 3)}]"
-            return f"[{self.vector.round(decimals=3)}, {round(self.fitness_value, 3)}, {self.scaled_fitness_value}]"
+            return f"[{self.vector}, {round(self.fitness_value, 3)}, {self.scaled_fitness_value}]"
         else:
-            return f"[{self.vector.round(decimals=3)}, {None}"
+            return f"[{self.vector}, {None}"
 
     def __eq__(self, other):
         return np.array_equal(self.vector, other.vector)
@@ -62,7 +65,13 @@ def calculate_fitness_function(function: callable, population: np.ndarray):
         agent.fitness_value = function(agent.vector)
 
 
-def main(fitness_function: callable,
+def get_average_fitness(population: np.ndarray):
+    fitness_extractor = np.vectorize(lambda agent: agent.fitness_value)
+    fitness_array = fitness_extractor(population)
+    return np.average(fitness_array)
+
+
+def main(task: OptimizationTask,
          coding: callable, decoding: callable,
          selection_method: callable,
          substitution_strategy: callable,
@@ -71,48 +80,54 @@ def main(fitness_function: callable,
          scaling: callable,
          iterations: int,
          n_agents: int) -> tuple[tuple, float]:
-    population = generate_starting_population(n_agents)
-    calculate_fitness_function(fitness_function, population)
+    population = generate_starting_population(n_agents, task.limits)
+    calculate_fitness_function(task, population)
 
     for i in range(1, iterations):
+        # print("-----------------POPULATION---------------------")
+        # print(population)
         parents = selection_method(population)
+        # print("----------------- parents ---------------------")
+        # print(parents)
         coding(parents)
         children = crossover(parents)
-        mutation(children)
+        mutation(children, task.limits)
         decoding(children)
         decoding(parents)
-        calculate_fitness_function(fitness_function, children)
-        scaling(np.concatenate(population, children))
-        substitution_strategy(population, children)
+        calculate_fitness_function(task, children)
+        # scaling(population, children)
+        population = substitution_strategy(population, children)
 
     return get_best_from_population(population)
 
 
 # main()
+limits = np.array([[-10, 10], [-10, 10]])
+task = OptimizationTask(circle_function, limits)
+xd = main(task, dummy, dummy, proportional_method, part_reproduction_elite_sub_strategy, arithmetic_crossover,
+          mutation_real_fen, linear, 100, 50)
+print(xd)
+# parents = generate_starting_population(5, limits)
+# calculate_fitness_function(circle_function, parents)
+# children = generate_starting_population(1, limits)
+# calculate_fitness_function(circle_function, children)
+#
+# print(parents)
+# print(children)
+# new_population = part_reproduction_similar_agents_fen_sub_strategy(parents, children)
+# print(new_population)
+#
+#
+# parents = np.array([Agent(np.array([1])), Agent(np.array([2])), Agent(np.array([3])), Agent(np.array([4]))])
+# parents[0].fitness_value = 169.
+# parents[1].fitness_value = 576.
+# parents[2].fitness_value = 64.
+# parents[3].fitness_value = 361.
 
-limits = np.array([[-0.01, 0.01], [-0.01, 0.01]])
-parents = generate_starting_population(5, limits)
-calculate_fitness_function(circle_function, parents)
-children = generate_starting_population(1, limits)
-calculate_fitness_function(circle_function, children)
-
-print(parents)
-print(children)
-new_population = part_reproduction_similar_agents_fen_sub_strategy(parents, children)
-print(new_population)
-
-
-parents = np.array([Agent(np.array([1])), Agent(np.array([2])), Agent(np.array([3])), Agent(np.array([4]))])
-parents[0].fitness_value = 169.
-parents[1].fitness_value = 576.
-parents[2].fitness_value = 64.
-parents[3].fitness_value = 361.
-
-children = np.array([])
-exponential(parents, children)
-print(parents)
-print(children)
-
+# children = np.array([])
+# exponential(parents, children)
+# print(parents)
+# print(children)
 
 
 # # for testing
