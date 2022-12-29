@@ -2,11 +2,14 @@ import numpy as np
 
 
 class OptimizationTask:
-    def __init__(self, function: callable, limits: np.ndarray, args: tuple = None):
+    def __init__(self, function: callable, limits: np.ndarray, target_x: list = None, target_y: float = None,
+                 args: tuple = None):
         self._f = function
         self.limits = limits
         self.size = len(limits)
         self.args = () if args is None else args
+        self.target_x = target_x
+        self.target_y = target_y
 
     def __call__(self, vector: np.ndarray):
         return self._f(vector)

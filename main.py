@@ -5,7 +5,8 @@ import random
 from selection_methods import proportional_method, stochastic_residual_method, threshold_method, tournament_method, \
     rank_method
 from test_functions import circle_function, quadratic_function, dummy, cross_in_tray_function, bukin_function, \
-    holder_table_function, egg_holder_function, griewank_function, drop_wave_function, levy_function_n13
+    holder_table_function, egg_holder_function, griewank_function, drop_wave_function, levy_function_n13, \
+    rastrigin_function
 from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen
 from crossover import pmx, arithmetic_crossover, mixed_crossover
 from substitution_strategy import full_sub_strategy, \
@@ -80,7 +81,7 @@ def main(task: OptimizationTask,
          mutation: callable,
          scaling: callable,
          iterations: int,
-         n_agents: int) -> tuple[tuple, float]:
+         n_agents: int) -> Agent:
     population = generate_starting_population(n_agents, task.limits)
     calculate_fitness_function(task, population)
 
@@ -96,7 +97,7 @@ def main(task: OptimizationTask,
         decoding(children)
         decoding(parents)
         calculate_fitness_function(task, children)
-        # scaling(population, children)
+        scaling(population, children)
         population = substitution_strategy(population, children)
 
     return get_best_from_population(population)
@@ -105,8 +106,8 @@ def main(task: OptimizationTask,
 # main()
 limits = np.array([[-15, 15], [-15, 15]])
 task = OptimizationTask(cross_in_tray_function, limits)
-xd = main(task, dummy, dummy, proportional_method, part_reproduction_elite_sub_strategy, arithmetic_crossover,
-          mutation_real_fen, linear, 100, 30)
+xd = main(task, dummy, dummy, proportional_method, part_reproduction_random_sub_strategy, arithmetic_crossover,
+          mutation_real_fen, linear, 200, 30)
 print(xd)
 # parents = generate_starting_population(5, limits)
 # calculate_fitness_function(circle_function, parents)
