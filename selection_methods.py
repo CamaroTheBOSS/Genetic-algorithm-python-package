@@ -13,7 +13,7 @@ def proportional_method(population: np.ndarray, selection_probability: np.ndarra
     selected = np.empty_like(population)
     for i in range(n):
         random_value = np.random.rand()
-        chosen_idx = np.argwhere(distribution == np.amin(distribution, where=distribution >= random_value, initial=1))
+        chosen_idx = np.argwhere(distribution == np.amin(distribution, where=distribution >= random_value, initial=distribution[-1]))
         chosen_idx = chosen_idx.reshape(-1)
         selected[i] = deepcopy(population[chosen_idx[0]])
 
@@ -43,7 +43,7 @@ def stochastic_residual_method(population: np.ndarray, selection_probability: np
 
     for i in range(vacates):
         random_value = np.random.rand()
-        chosen_idx = np.argwhere(distribution/distribution[-1] == np.amin(distribution/distribution[-1], where=distribution/distribution[-1] <= random_value, initial=1))
+        chosen_idx = np.argwhere(distribution/distribution[-1] == np.amin(distribution/distribution[-1], where=distribution/distribution[-1] <= random_value, initial=distribution[-1]/distribution[-1]))
         chosen_idx = chosen_idx.reshape(-1)
         selected[result_idx] = deepcopy(population[chosen_idx][0])
         result_idx += 1
