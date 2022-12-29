@@ -4,6 +4,9 @@ from selection_methods import proportional_method, stochastic_residual_method, t
     rank_method
 from test_functions import circle_function
 from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen
+from substitution_strategy import full_sub_strategy, \
+    part_reproduction_elite_sub_strategy, part_reproduction_random_sub_strategy, \
+    part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy
 
 
 class Agent:
@@ -16,6 +19,20 @@ class Agent:
         if isinstance(self.vector[0], str):
             return f"[{self.vector}, {round(self.fitness_value, 3)}]"
         return f"[{self.vector.round(decimals=3)}, {round(self.fitness_value, 3)}]"
+
+    def __eq__(self, other):
+        return np.array_equal(self.vector, other.vector)
+
+    def fen_similarity(self, other):
+        return np.sum(np.abs(np.subtract(self.vector, other.vector)))
+
+    def gen_similarity(self, other):
+        diff_counter = 0
+        for i in range(len(self.vector)):
+            for j in range(len(self.vector[i])):
+                if self.vector[i][j] != other.vector[i][j]:
+                    diff_counter += 1
+        return diff_counter
 
 
 def generate_starting_population(n_agents: int, limitations: np.ndarray) -> np.ndarray:
@@ -69,10 +86,20 @@ def main(fitness_function: callable,
 # main()
 
 limits = np.array([[-10, 10], [-1, 1]])
-pop = generate_starting_population(10, limits)
-calculate_fitness_function(circle_function, pop)
-for i in range(10):
-    mutation_real_fen(pop, limits, mutation_probability=1)
+parents = generate_starting_population(5, limits)
+calculate_fitness_function(circle_function, parents)
+children = generate_starting_population(1, limits)
+calculate_fitness_function(circle_function, children)
+
+print(parents)
+print(children)
+new_population = part_reproduction_similar_agents_fen_sub_strategy(parents, children)
+print(new_population)
+
+
+a = Agent(np.array(["0b101010", "0b11101010", "0b1110111"]))
+b = Agent(np.array(["0b111010", "0b11001010", "0b1110111"]))
+print(a.gen_similarity(b))
 
 # # for testing
 # def fit_func(agents):
