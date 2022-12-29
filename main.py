@@ -4,6 +4,7 @@ from selection_methods import proportional_method, stochastic_residual_method, t
     rank_method
 from test_functions import circle_function
 from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen
+from crossover import pmx
 
 
 class Agent:
@@ -13,9 +14,12 @@ class Agent:
         self.scaled_fitness_value = None
 
     def __repr__(self):
-        if isinstance(self.vector[0], str):
-            return f"[{self.vector}, {round(self.fitness_value, 3)}]"
-        return f"[{self.vector.round(decimals=3)}, {round(self.fitness_value, 3)}]"
+        if self.fitness_value is not None:
+            if isinstance(self.vector[0], str):
+                return f"[{self.vector}, {round(self.fitness_value, 3)}]"
+            return f"[{self.vector.round(decimals=3)}, {round(self.fitness_value, 3)}]"
+        else:
+            return f"[{self.vector.round(decimals=3)}"
 
 
 def generate_starting_population(n_agents: int, limitations: np.ndarray) -> np.ndarray:
@@ -90,3 +94,6 @@ for i in range(10):
 # tournament_method(AGENTS)
 # threshold_method(AGENTS, True, 5)
 # # rank_method(AGENTS, True, True, 0, 1, 1) # moze zadziała z dobrze dobranymi parametrami xd
+popul = np.array([Agent(np.array([4, 2, 8, 7, 5, 9, 1, 3, 6])), Agent(np.array([1, 9, 7, 5, 4, 6, 8, 2, 3]))])
+pmx(popul)
+print(popul)
