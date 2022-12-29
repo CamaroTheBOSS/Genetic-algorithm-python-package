@@ -7,6 +7,8 @@ def proportional_method(population: np.ndarray, selection_probability: np.ndarra
     if selection_probability is None:
         fitness_values = np.array([agent.fitness_value for agent in population])
         fitness_sum = np.sum(fitness_values)
+        if fitness_sum == 0:
+            fitness_sum = 1e-19
         selection_probability = fitness_values/fitness_sum
     distribution = np.cumsum(selection_probability)
     selected = np.empty_like(population)
@@ -25,6 +27,8 @@ def stochastic_residual_method(population: np.ndarray, selection_probability: np
     if selection_probability is None:
         fitness_values = np.array([agent.fitness_value for agent in population])
         fitness_sum = np.sum(fitness_values)
+        if fitness_sum == 0:
+            fitness_sum = 1e-19
         selection_probability = fitness_values/fitness_sum
     exp_n_of_copies = n * selection_probability
     exp_n_of_copies_ = np.floor(exp_n_of_copies).astype(int)
