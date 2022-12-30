@@ -13,7 +13,7 @@ from substitution_strategy import full_sub_strategy, \
     part_reproduction_elite_sub_strategy, part_reproduction_random_sub_strategy, \
     part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy
 from scaling import linear, sigma_clipping, exponential
-from wrappers import OptimizationTask
+from wrappers import OptimizationTask, WrappedCallback, Coding
 
 
 class Agent:
@@ -58,7 +58,7 @@ def generate_starting_population(n_agents: int, limitations: np.ndarray) -> np.n
 
 
 # Maybe min is better?
-def get_best_from_population(population: np.ndarray) -> tuple[tuple, float]:
+def get_best_from_population(population: np.ndarray) -> Agent:
     return max(population, key=lambda agent: agent.fitness_value)
 
 
@@ -74,12 +74,12 @@ def get_average_fitness(population: np.ndarray):
 
 
 def main(task: OptimizationTask,
-         coding: callable, decoding: callable,
-         selection_method: callable,
-         substitution_strategy: callable,
-         crossover: callable,
-         mutation: callable,
-         scaling: callable,
+         coding: Coding,
+         selection_method: WrappedCallback,
+         substitution_strategy: WrappedCallback,
+         crossover: WrappedCallback,
+         mutation: WrappedCallback,
+         scaling: WrappedCallback,
          iterations: int,
          n_agents: int) -> Agent:
     population = generate_starting_population(n_agents, task.limits)
@@ -93,12 +93,12 @@ def main(task: OptimizationTask,
         # print(parents)
         coding(parents)
         children = crossover(parents)
-        mutation(children, task.limits)
-        decoding(children)
-        decoding(parents)
+        mutation(children, args=(task.limits,))
+        coding.decode(children)
+        coding.decode(parents)
         calculate_fitness_function(task, children)
-        scaling(population, children)
-        population = substitution_strategy(population, children)
+        scaling(population, args=(children,))
+        population = substitution_strategy(population, args=(children,))
 
     return get_best_from_population(population)
 
@@ -106,8 +106,16 @@ def main(task: OptimizationTask,
 # main()
 limits = np.array([[-15, 15], [-15, 15]])
 task = OptimizationTask(cross_in_tray_function, limits)
-xd = main(task, dummy, dummy, proportional_method, part_reproduction_random_sub_strategy, arithmetic_crossover,
-          mutation_real_fen, linear, 200, 30)
+sub_strat = WrappedCallback(part_reproduction_elite_sub_strategy)
+xd = main(task,
+          Coding(dummy, dummy),
+          WrappedCallback(proportional_method),
+          WrappedCallback(part_reproduction_elite_sub_strategy),
+          WrappedCallback(arithmetic_crossover),
+          WrappedCallback(mutation_real_fen),
+          WrappedCallback(linear),
+          200,
+          30)
 print(xd)
 # parents = generate_starting_population(5, limits)
 # calculate_fitness_function(circle_function, parents)

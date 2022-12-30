@@ -1,28 +1,38 @@
 import numpy as np
 
 
-class OptimizationTask:
+class WrappedCallback:
+    def __init__(self, function: callable, parameters: tuple = None):
+        self._f = function
+        self.parameters = () if parameters is None else parameters
+
+    def __call__(self, vector: np.ndarray, args: tuple = None):
+        if args is None:
+            return self._f(vector, *self.parameters)
+        return self._f(vector, *args, *self.parameters)
+
+
+class OptimizationTask(WrappedCallback):
     def __init__(self, function: callable, limits: np.ndarray, target_x: list = None, target_y: float = None,
                  args: tuple = None):
-        self._f = function
+        super().__init__(function, args)
         self.limits = limits
         self.size = len(limits)
-        self.args = () if args is None else args
         self.target_x = target_x
         self.target_y = target_y
 
-    def __call__(self, vector: np.ndarray):
-        return self._f(vector)
 
-
-class Coding:
-    def __init__(self, coding: callable, decoding: callable, args: tuple = None):
-        self._coding = coding
+class Coding(WrappedCallback):
+    def __init__(self, coding: callable, decoding: callable, parameters: tuple = None):
+        super().__init__(coding, parameters)
         self._decoding = decoding
-        self.args = () if args is None else args
 
-    def encode(self, population: np.ndarray):
-        self._coding(population, *self.args)
+    def encode(self, population: np.ndarray, args: tuple = None):
+        if args is None:
+            return self._f(population, *self.parameters)
+        return self._f(population, *args, *self.parameters)
 
-    def decode(self, population: np.ndarray):
-        self._decoding(population, *self.args)
+    def decode(self, population: np.ndarray, args: tuple = None):
+        if args is None:
+            return self._f(population, *self.parameters)
+        return self._f(population, *args, *self.parameters)

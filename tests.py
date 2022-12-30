@@ -46,7 +46,6 @@ def get_feedback(task: OptimizationTask, result):
     print(f"Feedback: {1 / (1 + 2 * abs(task.target_y - result.fitness_value))}")
 
 
-
 def cross_in_tray_test(config: Config):
     task = OptimizationTask(cross_in_tray_function, np.array([[-15, 15], [-15, 15]]),
                             target_x=[[1.34, 1.34], [-1.34, 1.34], [1.34, -1.34], [-1.34, -1.34]], target_y=2.06261)
