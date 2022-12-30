@@ -8,6 +8,9 @@ def linear(parents: np.ndarray, children: np.ndarray, c: int = 2):
     favg = np.average(fitness_array)
     fmin = np.min(fitness_array)
     fmax = np.max(fitness_array)
+    if fmin == fmax:
+        return
+
     if fmin > (c * favg - fmax) / (c - 1):
         a = favg * (c - 1) / (fmax - favg)
         b = (1 - a) * favg
