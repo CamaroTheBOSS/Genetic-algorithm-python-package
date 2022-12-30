@@ -6,7 +6,7 @@ from selection_methods import proportional_method, stochastic_residual_method, t
     rank_method
 from test_functions import circle_function, quadratic_function, dummy, cross_in_tray_function, bukin_function, \
     holder_table_function, egg_holder_function, griewank_function, drop_wave_function, levy_function_n13, \
-    rastrigin_function
+    rastrigin_function, salesman_function
 from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen
 from crossover import pmx, arithmetic_crossover, mixed_crossover
 from substitution_strategy import full_sub_strategy, \
@@ -14,6 +14,7 @@ from substitution_strategy import full_sub_strategy, \
     part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy
 from scaling import linear, sigma_clipping, exponential
 from wrappers import OptimizationTask, WrappedCallback, Coding
+from travelling_salesman import read_tsp_data
 
 
 class Agent:
@@ -57,14 +58,24 @@ def generate_starting_population(n_agents: int, limitations: np.ndarray) -> np.n
     return population
 
 
+def generate_starting_population_for_salesman_problem(n_agents, limitations: np.ndarray):
+    population = np.empty(n_agents, dtype=object)
+    values = np.arange(0, len(limitations), 1)
+    for i in range(n_agents):
+        init_vector = np.copy(values)
+        np.random.shuffle(init_vector)
+        population[i] = Agent(init_vector)
+    return population
+
+
 # Maybe min is better?
 def get_best_from_population(population: np.ndarray) -> Agent:
     return max(population, key=lambda agent: agent.fitness_value)
 
 
-def calculate_fitness_function(function: callable, population: np.ndarray):
+def calculate_fitness_function(population: np.ndarray, task: callable):
     for agent in population:
-        agent.fitness_value = function(agent.vector)
+        agent.fitness_value = task(agent.vector, *task.parameters)
 
 
 def get_average_fitness(population: np.ndarray):
@@ -82,21 +93,20 @@ def main(task: OptimizationTask,
          scaling: WrappedCallback,
          iterations: int,
          n_agents: int) -> Agent:
-    population = generate_starting_population(n_agents, task.limits)
-    calculate_fitness_function(task, population)
+    if task.salesman:
+        population = generate_starting_population_for_salesman_problem(n_agents, task.limits)
+    else:
+        population = generate_starting_population(n_agents, task.limits)
+    calculate_fitness_function(population, task)
 
     for i in range(1, iterations):
-        # print("-----------------POPULATION---------------------")
-        # print(population)
         parents = selection_method(population)
-        # print("----------------- parents ---------------------")
-        # print(parents)
         coding(parents)
         children = crossover(parents)
         mutation(children, args=(task.limits,))
         coding.decode(children)
         coding.decode(parents)
-        calculate_fitness_function(task, children)
+        calculate_fitness_function(children, task)
         scaling(population, args=(children,))
         population = substitution_strategy(population, args=(children,))
 
@@ -104,19 +114,19 @@ def main(task: OptimizationTask,
 
 
 # main()
-limits = np.array([[-15, 15], [-15, 15]])
-task = OptimizationTask(cross_in_tray_function, limits)
-sub_strat = WrappedCallback(part_reproduction_elite_sub_strategy)
-xd = main(task,
-          Coding(dummy, dummy),
-          WrappedCallback(proportional_method),
-          WrappedCallback(part_reproduction_elite_sub_strategy),
-          WrappedCallback(arithmetic_crossover),
-          WrappedCallback(mutation_real_fen),
-          WrappedCallback(linear),
-          200,
-          30)
-print(xd)
+# limits = np.array([[-15, 15], [-15, 15]])
+# task = OptimizationTask(cross_in_tray_function, limits)
+# sub_strat = WrappedCallback(part_reproduction_elite_sub_strategy)
+# xd = main(task,
+#           Coding(dummy, dummy),
+#           WrappedCallback(proportional_method),
+#           WrappedCallback(part_reproduction_elite_sub_strategy),
+#           WrappedCallback(arithmetic_crossover),
+#           WrappedCallback(mutation_real_fen),
+#           WrappedCallback(linear),
+#           200,
+#           30)
+# print(xd)
 # parents = generate_starting_population(5, limits)
 # calculate_fitness_function(circle_function, parents)
 # children = generate_starting_population(1, limits)

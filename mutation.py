@@ -186,3 +186,14 @@ def mutation_real_fen(population: np.ndarray, limits: np.ndarray, mutation_proba
             down_border = agent.vector[parameter_idx] - r * (
                         agent.vector[parameter_idx] - limits[parameter_idx][0]) * iter_factor
             agent.vector[parameter_idx] = np.random.uniform(low=down_border, high=upper_border)
+
+
+def mutation_salesman_problem(population: np.ndarray, limits: np.ndarray, mutation_probability: float = 0.03):
+    for agent in population:
+        if np.random.uniform(0, 1) <= mutation_probability:
+            first = np.random.randint(0, len(agent.vector))
+            second = np.random.randint(0, len(agent.vector))
+
+            temp = agent.vector[first]
+            agent.vector[first] = agent.vector[second]
+            agent.vector[second] = temp

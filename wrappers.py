@@ -8,18 +8,19 @@ class WrappedCallback:
 
     def __call__(self, vector: np.ndarray, args: tuple = None):
         if args is None:
-            return self._f(vector, *self.parameters)
-        return self._f(vector, *args, *self.parameters)
+            return self._f(vector, *())
+        return self._f(vector, *args)
 
 
 class OptimizationTask(WrappedCallback):
     def __init__(self, function: callable, limits: np.ndarray, target_x: list = None, target_y: float = None,
-                 args: tuple = None):
+                 args: tuple = None, salesman_problem: bool = False):
         super().__init__(function, args)
         self.limits = limits
         self.size = len(limits)
         self.target_x = target_x
         self.target_y = target_y
+        self.salesman = salesman_problem
 
 
 class Coding(WrappedCallback):

@@ -4,8 +4,9 @@ from selection_methods import proportional_method, stochastic_residual_method, t
     rank_method
 from test_functions import circle_function, quadratic_function, dummy, cross_in_tray_function, bukin_function, \
     holder_table_function, egg_holder_function, griewank_function, drop_wave_function, levy_function_n13, \
-    rastrigin_function
-from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen
+    rastrigin_function, salesman_function
+from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen, \
+    mutation_salesman_problem
 from crossover import pmx, arithmetic_crossover, mixed_crossover
 from substitution_strategy import full_sub_strategy, \
     part_reproduction_elite_sub_strategy, part_reproduction_random_sub_strategy, \
@@ -13,6 +14,7 @@ from substitution_strategy import full_sub_strategy, \
 from scaling import linear, sigma_clipping, exponential
 from wrappers import OptimizationTask, Coding, WrappedCallback
 from main import main
+from travelling_salesman import read_tsp_data
 
 
 class Config:
@@ -101,24 +103,49 @@ def rastrigin_test(config: Config):
     get_feedback(task, result)
 
 
-def big_test():
-    config = Config(
-          Coding(dummy, dummy),
-          WrappedCallback(proportional_method),
-          WrappedCallback(part_reproduction_elite_sub_strategy),
-          WrappedCallback(arithmetic_crossover),
-          WrappedCallback(mutation_real_fen),
-          WrappedCallback(linear),
-          200,
-          30)
-    cross_in_tray_test(config)
-    bukin_test(config)
-    drop_wave_test(config)
-    egg_holder_test(config)
-    griewank_test(config)
-    holder_table_test(config)
-    levy_test(config)
-    rastrigin_test(config)
+def salesman_test(config: Config, data: np.ndarray, target_x: list, target_y: float):
+    task = OptimizationTask(salesman_function, np.full((len(data), 2), np.asarray([0, len(data)])),
+                            target_x=target_x, target_y=target_y, salesman_problem=True, args=((data,),))
+    result = main(task, *config.get())
+    get_feedback(task, result)
 
 
-big_test()
+def test(function: bool = True, salesman: bool = True):
+    if function:
+        config = Config(
+            Coding(dummy, dummy),
+            WrappedCallback(proportional_method),
+            WrappedCallback(part_reproduction_elite_sub_strategy),
+            WrappedCallback(arithmetic_crossover),
+            WrappedCallback(mutation_real_fen),
+            WrappedCallback(linear),
+            200,
+            30)
+
+        cross_in_tray_test(config)
+        bukin_test(config)
+        drop_wave_test(config)
+        egg_holder_test(config)
+        griewank_test(config)
+        holder_table_test(config)
+        levy_test(config)
+        rastrigin_test(config)
+
+    if salesman:
+        config = Config(
+            Coding(dummy, dummy),
+            WrappedCallback(proportional_method),
+            WrappedCallback(part_reproduction_elite_sub_strategy),
+            WrappedCallback(pmx),
+            WrappedCallback(mutation_salesman_problem),
+            WrappedCallback(linear),
+            200,
+            30)
+
+        # data = read_tsp_data("salesman/test1.tsp")
+        # salesman_test(config, data, [], -1368)
+        data = read_tsp_data("salesman/simple.tsp")
+        salesman_test(config, data, [1, 2, 3, 4], -90)
+
+
+test(function=False, salesman=True)
