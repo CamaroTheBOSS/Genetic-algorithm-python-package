@@ -77,3 +77,34 @@ def mixed_crossover(population: np.ndarray):
         children1[i].vector = temp1
         children2[i].vector = temp2
     return np.concatenate((children1, children2))
+
+
+def binary_crossover(population: np.ndarray, n_of_points: int = 1):
+    np.random.shuffle(population)
+    parents1, parents2 = np.array_split(population, 2)
+    children1, children2 = deepcopy(parents1), deepcopy(parents2)
+    for i in range(min(len(parents1), len(parents2))):
+        x_points = sorted(np.random.choice(range(1, len(population[0].vector[0][2:])), n_of_points, replace=False))
+        for k in range(len(children1[i].vector)):
+            temp1 = [children1[i].vector[k][:2+x_points[0]]]
+            temp2 = [children2[i].vector[k][:2+x_points[0]]]
+            for j in range(len(x_points)):
+                if j+1 < len(x_points):
+                    if j % 2 != 0:
+                        temp1.append(children2[i].vector[k][2+x_points[j]:2+x_points[j + 1]])
+                        temp2.append(children1[i].vector[k][2+x_points[j]:2+x_points[j + 1]])
+                    else:
+                        temp1.append(children1[i].vector[k][2+x_points[j]:2+x_points[j + 1]])
+                        temp2.append(children2[i].vector[k][2+x_points[j]:2+x_points[j + 1]])
+                else:
+                    if j % 2 != 0:
+                        temp1.append(children2[i].vector[k][2+x_points[j]:])
+                        temp2.append(children1[i].vector[k][2+x_points[j]:])
+                    else:
+                        temp1.append(children1[i].vector[k][2+x_points[j]:])
+                        temp2.append(children2[i].vector[k][2+x_points[j]:])
+
+            children1[i].vector[k] = ''.join(temp1)
+            children2[i].vector[k] = ''.join(temp2)
+
+    return np.concatenate((children1, children2))

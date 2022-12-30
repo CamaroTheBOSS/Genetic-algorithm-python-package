@@ -8,19 +8,21 @@ from test_functions import circle_function, quadratic_function, dummy, cross_in_
     holder_table_function, egg_holder_function, griewank_function, drop_wave_function, levy_function_n13, \
     rastrigin_function
 from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen
-from crossover import pmx, arithmetic_crossover, mixed_crossover
+from crossover import pmx, arithmetic_crossover, mixed_crossover, binary_crossover
 from substitution_strategy import full_sub_strategy, \
     part_reproduction_elite_sub_strategy, part_reproduction_random_sub_strategy, \
     part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy
 from scaling import linear, sigma_clipping, exponential
 from wrappers import OptimizationTask
+from coding import binary_coding, gray_coding
 
 
 class Agent:
-    def __init__(self, vector: np.ndarray):
+    def __init__(self, vector: np.ndarray, limitations: np.array):
         self.vector = vector
         self.fitness_value = None
         self.scaled_fitness_value = None
+        self.limits = limitations
 
     def __repr__(self):
         if self.fitness_value is not None:
@@ -52,7 +54,7 @@ def generate_starting_population(n_agents: int, limitations: np.ndarray) -> np.n
         init_vector = np.zeros(n_dimensions)
         for j, limit in enumerate(limitations):
             init_vector[j] = random.uniform(limit[0], limit[1])
-        population[i] = Agent(init_vector)
+        population[i] = Agent(init_vector, limitations)
 
     return population
 
@@ -109,6 +111,11 @@ task = OptimizationTask(cross_in_tray_function, limits)
 xd = main(task, dummy, dummy, proportional_method, part_reproduction_random_sub_strategy, arithmetic_crossover,
           mutation_real_fen, linear, 200, 30)
 print(xd)
+
+POP = generate_starting_population(10, np.array([[-255, 255], [-255, 255], [-255, 255]]))
+gray_coding(POP, 4)
+kids = binary_crossover(POP, 2)
+print("")
 # parents = generate_starting_population(5, limits)
 # calculate_fitness_function(circle_function, parents)
 # children = generate_starting_population(1, limits)
