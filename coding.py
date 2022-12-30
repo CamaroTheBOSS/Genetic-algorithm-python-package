@@ -2,58 +2,34 @@ import numpy as np
 from itertools import repeat
 
 
-def decimal_converter(n):
-    while n > 1:
-        n /= 10
-    return n
+def to_bin(num, bits: int, limits: np.ndarray):
+    max_ = 2**bits
+    int_space = np.linspace(0, max_ - 1, max_, dtype=int)
+    org_space = np.linspace(limits[0], limits[1], max_)
+    idx = (np.abs(org_space - num)).argmin()
+
+    return '0b' + format(int_space[idx], f'0{bits}b')
 
 
-def float_to_bin(n: float, decimal_places: int):
+def float_to_gray(n: float, bits: int, limits: np.ndarray):
 
-    whole, decimal = str(n).split(".")
-    whole, decimal = int(whole), int(decimal)
-    res = bin(whole)[2:] + "."
-
-    for i in range(decimal_places):
-        whole, decimal = str((decimal_converter(decimal))*2).split(".")
-        decimal = int(decimal)
-        res += whole
-
-    return '0b'+res
-
-
-def float_to_gray(n: float, decimal_places: int):
-
-    binary = float_to_bin(n, decimal_places)
-    joined = ''.join(binary.split('.'))
-    gray = int_to_gray(int(joined, 2))[2:]
-    gray = '.'.join([gray[:-4], gray[-4:]])
+    binary = to_bin(n, bits, limits)
+    n = int(binary, 2)
+    gray = format(n ^ (n >> 1), f'0{bits}b')
 
     return '0b'+gray
 
 
-def int_to_gray(n: int):
-    return bin(n ^ (n >> 1))
+def binary_coding(population: np.ndarray, bits: int = 8):
+
+    for agent in population:
+        agent.vector = np.array(list(map(to_bin, agent.vector, repeat(bits), agent.limits)))
 
 
-def binary_coding(population: np.ndarray, decimal_places: int = 0):
+def gray_coding(population: np.ndarray, bits: int = 0):
 
-    if decimal_places == 0:
-        for agent in population:
-            agent.vector = np.array(list(map(bin, agent.vector)))
-    else:
-        for agent in population:
-            agent.vector = np.array(list(map(float_to_bin, agent.vector, repeat(decimal_places))))
-
-
-def gray_coding(population: np.ndarray, decimal_places: int = 0):
-
-    if decimal_places == 0:
-        for agent in population:
-            agent.vector = np.array(list(map(int_to_gray, agent.vector)))
-    else:
-        for agent in population:
-            agent.vector = np.array(list(map(float_to_gray, agent.vector, repeat(decimal_places))))
+    for agent in population:
+        agent.vector = np.array(list(map(float_to_gray, agent.vector, repeat(bits), agent.limits)))
 
 
 def triallelic_coding(poppulation: np.ndarray):
