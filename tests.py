@@ -11,21 +11,20 @@ from substitution_strategy import full_sub_strategy, \
     part_reproduction_elite_sub_strategy, part_reproduction_random_sub_strategy, \
     part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy
 from scaling import linear, sigma_clipping, exponential
-from wrappers import OptimizationTask
+from wrappers import OptimizationTask, Coding, WrappedCallback
 from main import main
 
 
 class Config:
-    def __init__(self, coding: callable, decoding: callable,
-                 selection_method: callable,
-                 substitution_strategy: callable,
-                 crossover: callable,
-                 mutation: callable,
-                 scaling: callable,
+    def __init__(self, coding: Coding,
+                 selection_method: WrappedCallback,
+                 substitution_strategy: WrappedCallback,
+                 crossover: WrappedCallback,
+                 mutation: WrappedCallback,
+                 scaling: WrappedCallback,
                  iterations: int,
                  n_agents: int):
         self.coding = coding
-        self.decoding = decoding
         self.selection_method = selection_method
         self.substitution_strategy = substitution_strategy
         self.crossover = crossover
@@ -35,7 +34,7 @@ class Config:
         self.n_agents = n_agents
 
     def get(self):
-        return [self.coding, self.decoding, self.selection_method, self.substitution_strategy, self.crossover,
+        return [self.coding, self.selection_method, self.substitution_strategy, self.crossover,
                 self.mutation, self.scaling, self.iterations, self.n_agents]
 
 
@@ -44,7 +43,6 @@ def get_feedback(task: OptimizationTask, result):
     print(f"Desired: {task.target_x} -> {task.target_y}")
     print(f"Got: {list(result.vector)} -> {result.fitness_value}")
     print(f"Feedback: {1 / (1 + 2 * abs(task.target_y - result.fitness_value))}")
-
 
 
 def cross_in_tray_test(config: Config):
@@ -104,8 +102,15 @@ def rastrigin_test(config: Config):
 
 
 def big_test():
-    config = Config(dummy, dummy, proportional_method, part_reproduction_elite_sub_strategy, arithmetic_crossover,
-                    mutation_real_fen, linear, 200, 30)
+    config = Config(
+          Coding(dummy, dummy),
+          WrappedCallback(proportional_method),
+          WrappedCallback(part_reproduction_elite_sub_strategy),
+          WrappedCallback(arithmetic_crossover),
+          WrappedCallback(mutation_real_fen),
+          WrappedCallback(linear),
+          200,
+          30)
     cross_in_tray_test(config)
     bukin_test(config)
     drop_wave_test(config)
