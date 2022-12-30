@@ -20,10 +20,42 @@ def float_to_gray(n: float, bits: int, limits: np.ndarray):
     return '0b'+gray
 
 
+def gray_to_float(num: str, bits: int, limits: np.ndarray):
+    n = int(num, 2)
+
+    mask = n
+    while mask != 0:
+        mask >>= 1
+        n ^= mask
+
+    return bin_to_float(bin(n), bits, limits)
+
+
+def bin_to_float(num: str, bits: int, limits: np.ndarray):
+    max_ = 2**bits
+    int_space = np.linspace(0, max_ - 1, max_, dtype=int)
+    org_space = np.linspace(limits[0], limits[1], max_)
+    idx = (np.abs(int_space - int(num, 2))).argmin()
+
+    return org_space[idx]
+
+
 def binary_coding(population: np.ndarray, bits: int = 8):
 
     for agent in population:
         agent.vector = np.array(list(map(to_bin, agent.vector, repeat(bits), agent.limits)))
+
+
+def binary_decoding(population: np.ndarray, bits: int = 8):
+
+    for agent in population:
+        agent.vector = np.array(list(map(bin_to_float, agent.vector, repeat(bits), agent.limits)))
+
+
+def gray_decoding(population: np.ndarray, bits: int = 8):
+
+    for agent in population:
+        agent.vector = np.array(list(map(gray_to_float, agent.vector, repeat(bits), agent.limits)))
 
 
 def gray_coding(population: np.ndarray, bits: int = 0):

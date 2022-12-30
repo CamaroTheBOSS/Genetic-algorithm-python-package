@@ -14,7 +14,7 @@ from substitution_strategy import full_sub_strategy, \
     part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy
 from scaling import linear, sigma_clipping, exponential
 from wrappers import OptimizationTask, WrappedCallback, Coding
-from coding import binary_coding, gray_coding
+from coding import binary_coding, gray_coding, binary_decoding, gray_decoding
 
 
 class Agent:
@@ -106,22 +106,25 @@ def main(task: OptimizationTask,
 
 
 # main()
-limits = np.array([[-15, 15], [-15, 15]])
-task = OptimizationTask(cross_in_tray_function, limits)
-sub_strat = WrappedCallback(part_reproduction_elite_sub_strategy)
-xd = main(task,
-          Coding(dummy, dummy),
-          WrappedCallback(proportional_method),
-          WrappedCallback(part_reproduction_elite_sub_strategy),
-          WrappedCallback(arithmetic_crossover),
-          WrappedCallback(mutation_real_fen),
-          WrappedCallback(linear),
-          200,
-          30)
-print(xd)
+# limits = np.array([[-15, 15], [-15, 15]])
+# task = OptimizationTask(cross_in_tray_function, limits)
+# sub_strat = WrappedCallback(part_reproduction_elite_sub_strategy)
+# xd = main(task,
+#           Coding(dummy, dummy),
+#           WrappedCallback(proportional_method),
+#           WrappedCallback(part_reproduction_elite_sub_strategy),
+#           WrappedCallback(arithmetic_crossover),
+#           WrappedCallback(mutation_real_fen),
+#           WrappedCallback(linear),
+#           200,
+#           30)
+# print(xd)
 
-POP = generate_starting_population(10, np.array([[-255, 255], [-255, 255], [-255, 255]]))
-gray_coding(POP, 4)
+POP = generate_starting_population(10, np.array([[-20, 20], [-20, 20], [-20, 20]]))
+print('przed', POP)
+gray_coding(POP, 16)
+gray_decoding(POP, 16)
+print('po', POP)
 kids = binary_crossover(POP, 2)
 print("")
 # parents = generate_starting_population(5, limits)
