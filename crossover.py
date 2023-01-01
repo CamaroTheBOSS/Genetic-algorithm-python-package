@@ -134,3 +134,26 @@ def ox(population: np.ndarray):
         children2[i].vector = vs_
 
     return np.concatenate((children1, children2))
+
+
+def cx_fill_vector(v_: np.ndarray, parent_vectors: tuple):
+    idx = 0
+    while parent_vectors[0][idx] not in v_:
+        v_[idx] = parent_vectors[0][idx]
+        idx = np.argwhere(parent_vectors[0] == np.full_like(v_, parent_vectors[1][idx]))
+    empty_idx = np.argwhere(v_ == -1)
+    v_[empty_idx] = parent_vectors[1][empty_idx]
+
+
+def cx(population: np.ndarray):
+    np.random.shuffle(population)
+    parents1, parents2 = np.array_split(population, 2)
+    children1, children2 = deepcopy(parents1), deepcopy(parents2)
+    for i in range(min(len(parents1), len(parents2))):
+        vr_, vs_ = -1 * np.ones_like(parents1[i].vector), -1 * np.ones_like(parents2[i].vector)
+        cx_fill_vector(vr_, (parents1[i].vector, parents2[i].vector))
+        cx_fill_vector(vs_, (parents2[i].vector, parents1[i].vector))
+        children1[i].vector = vr_
+        children2[i].vector = vs_
+
+    return np.concatenate((children1, children2))
