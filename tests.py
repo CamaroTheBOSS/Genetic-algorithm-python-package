@@ -7,7 +7,7 @@ from test_functions import circle_function, quadratic_function, dummy, cross_in_
     rastrigin_function, salesman_function, knapsack_function
 from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen, \
     mutation_salesman_problem
-from crossover import pmx, arithmetic_crossover, mixed_crossover
+from crossover import pmx, arithmetic_crossover, mixed_crossover, binary_crossover
 from substitution_strategy import full_sub_strategy, \
     part_reproduction_elite_sub_strategy, part_reproduction_random_sub_strategy, \
     part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy
@@ -159,14 +159,14 @@ def test(function: bool = True, salesman: bool = True, knapsack: bool = True):
             Coding(dummy, dummy),
             WrappedCallback(tournament_method),
             WrappedCallback(part_reproduction_elite_sub_strategy),
-            WrappedCallback(pmx),
-            WrappedCallback(mutation_salesman_problem, parameters=(0.2,)),
+            WrappedCallback(binary_crossover),
+            WrappedCallback(mutation_bin_gen, parameters=(0.2,)),
             WrappedCallback(linear),
-            100,
+            500,
             50)
 
         data, capacity = read_knapsack_data("knapsack/test1.txt")
         knapsack_test(config, data, capacity, [1, 1, 1, 1, 0, 1, 0, 0, 0, 0], 92 + 57 + 49 + 68 + 43)
 
 
-test(function=False, salesman=True, knapsack=True)
+test(function=False, salesman=False, knapsack=True)

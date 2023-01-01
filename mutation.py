@@ -57,8 +57,12 @@ def mutation_bin_gen(population: np.ndarray, limits: np.ndarray, mutation_probab
             else:
                 value = _bitwise_exchange_mutation(agent.vector[parameter_idx])
 
-            if int(limits[parameter_idx][0], 2) > int(value, 2) > int(limits[parameter_idx][1], 2):
-                agent.vector[parameter_idx] = value
+            if isinstance(limits, str):
+                if int(limits[parameter_idx][0], 2) > int(value, 2) > int(limits[parameter_idx][1], 2):
+                    agent.vector[parameter_idx] = value
+            else:
+                if limits[parameter_idx][0] > int(value, 2) > limits[parameter_idx][1]:
+                    agent.vector[parameter_idx] = value
 
 
 def trit_greater_than(first, second):
@@ -159,8 +163,12 @@ def mutation_bin_fen(population: np.ndarray, limits: np.ndarray, mutation_probab
             parameter_idx = np.random.randint(0, len(agent.vector))
             value = _bitwise_put_mutation(agent.vector[parameter_idx])
 
-            if int(limits[parameter_idx][0], 2) > int(value, 2) > int(limits[parameter_idx][1], 2):
-                agent.vector[parameter_idx] = value
+            if isinstance(limits, str):
+                if int(limits[parameter_idx][0], 2) > int(value, 2) > int(limits[parameter_idx][1], 2):
+                    agent.vector[parameter_idx] = value
+            else:
+                if limits[parameter_idx][0] > int(value, 2) > limits[parameter_idx][1]:
+                    agent.vector[parameter_idx] = value
 
 
 def mutation_tri_fen(population: np.ndarray, limits: np.ndarray, mutation_probability: float = 0.03):
