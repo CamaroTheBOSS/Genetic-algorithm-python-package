@@ -105,14 +105,14 @@ def rastrigin_test(config: Config):
 
 def salesman_test(config: Config, data: np.ndarray, target_x: list, target_y: float):
     task = OptimizationTask(salesman_function, np.full((len(data), 2), np.asarray([0, len(data)])),
-                            target_x=target_x, target_y=target_y, salesman=True, args=(data,))
+                            target_x=target_x, target_y=target_y, problem_type='salesman', args=(data,))
     result = main(task, *config.get())
     get_feedback(task, result)
 
 
 def knapsack_test(config: Config, data: np.ndarray, capacity: int, target_x: list, target_y: float):
-    task = OptimizationTask(knapsack_function, np.full((len(data), 2), np.asarray([0, 1])),
-                            target_x=target_x, target_y=target_y, args=(data, capacity,))
+    task = OptimizationTask(knapsack_function, np.asarray([[0, 2**len(data)]]),
+                            target_x=target_x, target_y=target_y, problem_type='knapsack', args=(data, capacity,))
     result = main(task, *config.get())
     get_feedback(task, result)
 

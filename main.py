@@ -47,13 +47,16 @@ class Agent:
         return diff_counter
 
 
-def generate_starting_population(n_agents: int, limitations: np.ndarray) -> np.ndarray:
+def generate_starting_population(n_agents: int, limitations: np.ndarray, data_type: str = 'float') -> np.ndarray:
     population = np.empty(n_agents, dtype=object)
     n_dimensions = len(limitations)
     for i in range(n_agents):
-        init_vector = np.zeros(n_dimensions)
+        init_vector = np.zeros(n_dimensions, dtype=object)
         for j, limit in enumerate(limitations):
-            init_vector[j] = random.uniform(limit[0], limit[1])
+            if data_type == 'float':
+                init_vector[j] = random.uniform(limit[0], limit[1])
+            elif data_type == 'bin':
+                init_vector[j] = '0b'+''.join(np.random.randint(2, size=int(np.log2(limit[1]))).astype(str))
         population[i] = Agent(init_vector, limitations)
 
     return population
@@ -107,8 +110,10 @@ def main(task: OptimizationTask,
          scaling: WrappedCallback,
          iterations: int,
          n_agents: int) -> Agent:
-    if task.salesman:
+    if task.problem_type == 'salesman':
         population = generate_starting_population_for_salesman_problem(n_agents, task.limits)
+    elif task.problem_type == 'knapsack':
+        population = generate_starting_population(n_agents, task.limits, 'bin')
     else:
         population = generate_starting_population(n_agents, task.limits)
     calculate_fitness_function(population, task)
