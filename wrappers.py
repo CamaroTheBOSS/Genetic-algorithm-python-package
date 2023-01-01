@@ -14,13 +14,13 @@ class WrappedCallback:
 
 class OptimizationTask(WrappedCallback):
     def __init__(self, function: callable, limits: np.ndarray, target_x: list = None, target_y: float = None,
-                 args: tuple = None, salesman_problem: bool = False):
+                 args: tuple = None, salesman: bool = False):
         super().__init__(function, args)
         self.limits = limits
         self.size = len(limits)
         self.target_x = target_x
         self.target_y = target_y
-        self.salesman = salesman_problem
+        self.salesman = salesman
 
 
 class Coding(WrappedCallback):

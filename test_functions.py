@@ -65,3 +65,7 @@ def salesman_function(vector: np.ndarray, data: np.ndarray):
     base = np.take(data, vector, axis=0)
     neighbours = np.roll(base, 1, axis=0)
     return -np.sum(np.abs(base[:, 1] - neighbours[:, 1]) + np.abs(base[:, 2] - neighbours[:, 2]))
+
+
+def knapsack_function(vector: np.ndarray, data: np.ndarray, *args):
+    return np.sum(np.multiply(vector, data[:, 2]))

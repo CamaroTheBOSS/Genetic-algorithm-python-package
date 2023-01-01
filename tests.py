@@ -4,7 +4,7 @@ from selection_methods import proportional_method, stochastic_residual_method, t
     rank_method
 from test_functions import circle_function, quadratic_function, dummy, cross_in_tray_function, bukin_function, \
     holder_table_function, egg_holder_function, griewank_function, drop_wave_function, levy_function_n13, \
-    rastrigin_function, salesman_function
+    rastrigin_function, salesman_function, knapsack_function
 from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen, \
     mutation_salesman_problem
 from crossover import pmx, arithmetic_crossover, mixed_crossover
@@ -14,7 +14,7 @@ from substitution_strategy import full_sub_strategy, \
 from scaling import linear, sigma_clipping, exponential
 from wrappers import OptimizationTask, Coding, WrappedCallback
 from main import main
-from travelling_salesman import read_tsp_data
+from utils import read_tsp_data, read_knapsack_data
 
 
 class Config:
@@ -105,12 +105,19 @@ def rastrigin_test(config: Config):
 
 def salesman_test(config: Config, data: np.ndarray, target_x: list, target_y: float):
     task = OptimizationTask(salesman_function, np.full((len(data), 2), np.asarray([0, len(data)])),
-                            target_x=target_x, target_y=target_y, salesman_problem=True, args=((data,),))
+                            target_x=target_x, target_y=target_y, salesman=True, args=(data,))
     result = main(task, *config.get())
     get_feedback(task, result)
 
 
-def test(function: bool = True, salesman: bool = True):
+def knapsack_test(config: Config, data: np.ndarray, capacity: int, target_x: list, target_y: float):
+    task = OptimizationTask(knapsack_function, np.full((len(data), 2), np.asarray([0, 1])),
+                            target_x=target_x, target_y=target_y, args=(data, capacity,))
+    result = main(task, *config.get())
+    get_feedback(task, result)
+
+
+def test(function: bool = True, salesman: bool = True, knapsack: bool = True):
     if function:
         config = Config(
             Coding(dummy, dummy),
@@ -134,18 +141,32 @@ def test(function: bool = True, salesman: bool = True):
     if salesman:
         config = Config(
             Coding(dummy, dummy),
-            WrappedCallback(proportional_method),
+            WrappedCallback(tournament_method),
             WrappedCallback(part_reproduction_elite_sub_strategy),
             WrappedCallback(pmx),
-            WrappedCallback(mutation_salesman_problem),
+            WrappedCallback(mutation_salesman_problem, parameters=(0.2,)),
             WrappedCallback(linear),
-            200,
-            30)
+            100,
+            50)
 
-        # data = read_tsp_data("salesman/test1.tsp")
-        # salesman_test(config, data, [], -1368)
-        data = read_tsp_data("salesman/simple.tsp")
-        salesman_test(config, data, [1, 2, 3, 4], -90)
+        data = read_tsp_data("salesman/test1.tsp")
+        salesman_test(config, data, [], -1368)
+        # data = read_tsp_data("salesman/simple.tsp")
+        # salesman_test(config, data, [1, 2, 3, 4], -90)
+
+    if knapsack:
+        config = Config(
+            Coding(dummy, dummy),
+            WrappedCallback(tournament_method),
+            WrappedCallback(part_reproduction_elite_sub_strategy),
+            WrappedCallback(pmx),
+            WrappedCallback(mutation_salesman_problem, parameters=(0.2,)),
+            WrappedCallback(linear),
+            100,
+            50)
+
+        data, capacity = read_knapsack_data("knapsack/test1.txt")
+        knapsack_test(config, data, capacity, [1, 1, 1, 1, 0, 1, 0, 0, 0, 0], 92 + 57 + 49 + 68 + 43)
 
 
-test(function=False, salesman=True)
+test(function=False, salesman=True, knapsack=True)

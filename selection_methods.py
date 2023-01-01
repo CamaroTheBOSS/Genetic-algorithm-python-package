@@ -49,6 +49,7 @@ def stochastic_residual_method(population: np.ndarray, selection_probability: np
         chosen_idx = np.argwhere(distribution/distribution[-1] == np.amin(distribution/distribution[-1], where=distribution/distribution[-1] <= random_value, initial=distribution[-1]/distribution[-1]))
         chosen_idx = chosen_idx.reshape(-1)
         selected[result_idx] = deepcopy(population[chosen_idx[0]])
+
         result_idx += 1
 
     return selected

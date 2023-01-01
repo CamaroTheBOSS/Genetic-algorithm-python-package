@@ -14,8 +14,7 @@ from substitution_strategy import full_sub_strategy, \
     part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy
 from scaling import linear, sigma_clipping, exponential
 from wrappers import OptimizationTask, WrappedCallback, Coding
-from travelling_salesman import read_tsp_data
-from coding import binary_coding, gray_coding, binary_decoding, gray_decoding
+from utils import read_tsp_data
 
 
 class Agent:
@@ -66,8 +65,21 @@ def generate_starting_population_for_salesman_problem(n_agents, limitations: np.
     for i in range(n_agents):
         init_vector = np.copy(values)
         np.random.shuffle(init_vector)
-        population[i] = Agent(init_vector)
+        population[i] = Agent(init_vector, limitations)
     return population
+
+
+# def generate_starting_population_for_knapsack_problem(n_agents: int, data: np.ndarray, capacity: int):
+#     population = np.empty(n_agents, dtype=object)
+#     for i in range(n_agents):
+#         init_vector = np.random.randint(low=0, high=2, size=(len(data),))
+#         while np.sum(np.multiply(init_vector, data[:, 1])) > capacity:
+#             idx = np.random.choice(np.where(init_vector == 1)[0])
+#             init_vector[idx] = 0
+#
+#         population[i] = Agent(init_vector, limitations)
+#     print(population)
+#    return population
 
 
 # Maybe min is better?
@@ -77,7 +89,7 @@ def get_best_from_population(population: np.ndarray) -> Agent:
 
 def calculate_fitness_function(population: np.ndarray, task: callable):
     for agent in population:
-        agent.fitness_value = task(agent.vector, *task.parameters)
+        agent.fitness_value = task(agent.vector, task.parameters)
 
 
 def get_average_fitness(population: np.ndarray):
@@ -102,77 +114,14 @@ def main(task: OptimizationTask,
     calculate_fitness_function(population, task)
 
     for i in range(1, iterations):
-        parents = selection_method(population)
-        coding(parents)
-        children = crossover(parents)
-        mutation(children, args=(task.limits,))
-        coding.decode(children)
-        coding.decode(parents)
+        parents = selection_method(population, args=selection_method.parameters)
+        coding(parents, args=coding.parameters)
+        children = crossover(parents, args=crossover.parameters)
+        mutation(children, args=(task.limits,) + mutation.parameters)
+        coding.decode(children, args=coding.parameters)
+        coding.decode(parents, args=coding.parameters)
         calculate_fitness_function(children, task)
-        scaling(population, args=(children,))
-        population = substitution_strategy(population, args=(children,))
+        scaling(population, args=(children,) + scaling.parameters)
+        population = substitution_strategy(population, args=(children,) + substitution_strategy.parameters)
 
     return get_best_from_population(population)
-
-
-# main()
-# limits = np.array([[-15, 15], [-15, 15]])
-# task = OptimizationTask(cross_in_tray_function, limits)
-# sub_strat = WrappedCallback(part_reproduction_elite_sub_strategy)
-# xd = main(task,
-#           Coding(dummy, dummy),
-#           WrappedCallback(proportional_method),
-#           WrappedCallback(part_reproduction_elite_sub_strategy),
-#           WrappedCallback(arithmetic_crossover),
-#           WrappedCallback(mutation_real_fen),
-#           WrappedCallback(linear),
-#           200,
-#           30)
-# print(xd)
-
-# POP = generate_starting_population(10, np.array([[-20, 20], [-20, 20], [-20, 20]]))
-# print('przed', POP)
-# gray_coding(POP, 16)
-# gray_decoding(POP, 16)
-# print('po', POP)
-# kids = binary_crossover(POP, 2)
-# print("")
-# parents = generate_starting_population(5, limits)
-# calculate_fitness_function(circle_function, parents)
-# children = generate_starting_population(1, limits)
-# calculate_fitness_function(circle_function, children)
-#
-# print(parents)
-# print(children)
-# new_population = part_reproduction_similar_agents_fen_sub_strategy(parents, children)
-# print(new_population)
-#
-#
-# parents = np.array([Agent(np.array([1])), Agent(np.array([2])), Agent(np.array([3])), Agent(np.array([4]))])
-# parents[0].fitness_value = 169.
-# parents[1].fitness_value = 576.
-# parents[2].fitness_value = 64.
-# parents[3].fitness_value = 361.
-
-# children = np.array([])
-# exponential(parents, children)
-# print(parents)
-# print(children)
-
-
-# # for testing
-# def fit_func(agents):
-#     for agent in agents:
-#         agent.fitness_value = np.sum(agent.vector)
-#
-#
-# AGENTS = np.empty(10, dtype=object)
-# for I in range(10):
-#     AGENTS[I] = Agent(np.random.random(3))
-#
-# fit_func(AGENTS)
-# proportional_method(AGENTS)
-# stochastic_residual_method(AGENTS)
-# tournament_method(AGENTS)
-# threshold_method(AGENTS, True, 5)
-# # rank_method(AGENTS, True, True, 0, 1, 1) # moze zadziała z dobrze dobranymi parametrami xd
