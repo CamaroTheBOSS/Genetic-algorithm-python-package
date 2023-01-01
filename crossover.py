@@ -108,3 +108,29 @@ def binary_crossover(population: np.ndarray, n_of_points: int = 1):
             children2[i].vector[k] = ''.join(temp2)
 
     return np.concatenate((children1, children2))
+
+
+def ox_fill_empty_spots(v_: np.ndarray, parent_vector: np.ndarray, points: tuple):
+
+    v_seq = np.concatenate((parent_vector[points[1]:], parent_vector[:points[1]]))
+    v_seq_ = np.array([gene for gene in v_seq if gene not in v_])
+    v_[points[1]:] = v_seq_[:len(v_[points[1]:])]
+    v_[:points[0]] = v_seq_[len(v_[points[1]:]):]
+
+
+def ox(population: np.ndarray):
+    np.random.shuffle(population)
+    parents1, parents2 = np.array_split(population, 2)
+    children1, children2 = deepcopy(parents1), deepcopy(parents2)
+    for i in range(min(len(parents1), len(parents2))):
+        x_points = np.random.choice(range(len(population[0].vector)), 2, replace=False)
+        p1, p2 = np.min(x_points), np.max(x_points)
+        vr_, vs_ = -1 * np.ones_like(parents1[i].vector), -1 * np.ones_like(parents2[i].vector)
+        vr_[p1:p2] = parents1[i].vector[p1:p2]
+        vs_[p1:p2] = parents2[i].vector[p1:p2]
+        ox_fill_empty_spots(vr_, parents2[i].vector, (p1, p2))
+        ox_fill_empty_spots(vs_, parents1[i].vector, (p1, p2))
+        children1[i].vector = vr_
+        children2[i].vector = vs_
+
+    return np.concatenate((children1, children2))

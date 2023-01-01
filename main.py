@@ -8,7 +8,7 @@ from test_functions import circle_function, quadratic_function, dummy, cross_in_
     holder_table_function, egg_holder_function, griewank_function, drop_wave_function, levy_function_n13, \
     rastrigin_function, salesman_function
 from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen
-from crossover import pmx, arithmetic_crossover, mixed_crossover, binary_crossover
+from crossover import pmx, arithmetic_crossover, mixed_crossover, binary_crossover, ox
 from substitution_strategy import full_sub_strategy, \
     part_reproduction_elite_sub_strategy, part_reproduction_random_sub_strategy, \
     part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy
