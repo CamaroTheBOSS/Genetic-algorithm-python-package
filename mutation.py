@@ -1,6 +1,8 @@
 import numpy as np
 import random
 
+from utils import decrease_to_limit
+
 
 def _gen_bits(n_bits):
     bits = "0b"
@@ -23,7 +25,7 @@ def _bitwise_inverse_mutation(value: bin):
 
 # input example '0b1010101011'
 def _bitwise_put_mutation(value: bin):
-    return _gen_bits(len(value) - 2)
+    return _gen_bits(len(value) - 3)
 
 
 # input example '0b1010101011'
@@ -43,25 +45,34 @@ def _bitwise_exchange_mutation(value: bin):
 
 
 # Hard to test without coding/decoding algorithm
-def mutation_bin_gen(population: np.ndarray, limits: np.ndarray, mutation_probability: float = 0.03):
+def mutation_bin_gen(population: np.ndarray, limits: np.ndarray, mutation_probability: float = 0.03, data: np.ndarray = None, capacity: int = None):
     for agent in population:
         if np.random.uniform(0, 1) <= mutation_probability:
             parameter_idx = np.random.randint(0, len(agent.vector))
             mutation_type = np.random.randint(0, 4)
             if mutation_type == 0:
+                # print('inverse')
                 value = _bitwise_inverse_mutation(agent.vector[parameter_idx])
             elif mutation_type == 1:
+                # print('put')
                 value = _bitwise_put_mutation(agent.vector[parameter_idx])
             elif mutation_type == 2:
+                # print('transfer')
                 value = _bitwise_transfer_mutation(agent.vector[parameter_idx])
             else:
+                # print('exchange')
                 value = _bitwise_exchange_mutation(agent.vector[parameter_idx])
 
             if isinstance(limits, str):
-                if int(limits[parameter_idx][0], 2) > int(value, 2) > int(limits[parameter_idx][1], 2):
+                if int(limits[parameter_idx][0], 2) < int(value, 2) < int(limits[parameter_idx][1], 2):
+                    # print(f'Mutation from {agent.vector[parameter_idx]} to {value}')
+                    if capacity is not None:
+                        value = decrease_to_limit([value], (((data), capacity)))[0]
                     agent.vector[parameter_idx] = value
             else:
-                if limits[parameter_idx][0] > int(value, 2) > limits[parameter_idx][1]:
+                if limits[parameter_idx][0] < int(value, 2) < limits[parameter_idx][1]:
+                    if capacity is not None:
+                        value = decrease_to_limit([value], ((((data), capacity)),), mutation=True)[0]
                     agent.vector[parameter_idx] = value
 
 

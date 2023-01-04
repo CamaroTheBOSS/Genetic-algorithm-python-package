@@ -67,13 +67,11 @@ def salesman_function(vector: np.ndarray, data: np.ndarray):
     return -np.sum(np.abs(base[:, 1] - neighbours[:, 1]) + np.abs(base[:, 2] - neighbours[:, 2]))
 
 
-def knapsack_function(vector: np.ndarray, data: np.ndarray, cap, *args):
+def knapsack_function(vector: np.ndarray, data: np.ndarray, *args):
     temp = np.array([*vector[0][2:]]).astype(int)
     idx = np.argwhere(temp == 1)
-    if np.sum(data[:, 1][idx]) <= cap:
-        return np.sum(data[:, 2][idx])
-    else:
-        return -99999999
+    return np.sum(data[:, 2][idx])
+
 
 # def knapsack_function(vector: np.ndarray, data: np.ndarray, *args):
 #     return np.sum(np.multiply(vector, data[:, 2]))

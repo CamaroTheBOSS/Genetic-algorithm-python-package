@@ -37,3 +37,16 @@ def read_knapsack_data(filepath: str):
             data[i] = np.asarray(line, dtype=int)
 
     return data, capacity
+
+
+def decrease_to_limit(init_vector, args, mutation=False):
+    temp = np.array([*init_vector[0][2:]]).astype(int)
+    indexes = np.argwhere(temp == 1)
+
+    while np.sum(args[0][0][:, 1][indexes]) > args[0][1]:
+        idx = np.random.choice([i for i, ltr in enumerate(init_vector[0]) if ltr == '1'])
+        init_vector[0] = init_vector[0][:idx] + '0' + init_vector[0][idx + 1:]
+        temp = np.array([*init_vector[0][2:]]).astype(int)
+        indexes = np.argwhere(temp == 1)
+
+    return init_vector

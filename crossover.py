@@ -1,6 +1,8 @@
 import numpy as np
 from copy import deepcopy
 
+from utils import decrease_to_limit
+
 
 def replace_pmx(this_temp, other_temp, value, j):
     replaced = False
@@ -13,7 +15,7 @@ def replace_pmx(this_temp, other_temp, value, j):
             value = other_temp[idx]
 
 
-def pmx(population: np.ndarray):
+def pmx(population: np.ndarray, *args):
     np.random.shuffle(population)
     parents1, parents2 = np.array_split(population, 2)
     children1, children2 = deepcopy(parents1), deepcopy(parents2)
@@ -51,7 +53,7 @@ def pmx(population: np.ndarray):
     return np.concatenate((children1, children2))
 
 
-def arithmetic_crossover(population: np.ndarray):
+def arithmetic_crossover(population: np.ndarray, *args):
     np.random.shuffle(population)
     parents1, parents2 = np.array_split(population, 2)
     children1, children2 = deepcopy(parents1), deepcopy(parents2)
@@ -64,7 +66,7 @@ def arithmetic_crossover(population: np.ndarray):
     return np.concatenate((children1, children2))
 
 
-def mixed_crossover(population: np.ndarray):
+def mixed_crossover(population: np.ndarray, *args):
     np.random.shuffle(population)
     parents1, parents2 = np.array_split(population, 2)
     children1, children2 = deepcopy(parents1), deepcopy(parents2)
@@ -79,7 +81,7 @@ def mixed_crossover(population: np.ndarray):
     return np.concatenate((children1, children2))
 
 
-def binary_crossover(population: np.ndarray, n_of_points: int = 1):
+def binary_crossover(population: np.ndarray, n_of_points: int = 1, data: np.ndarray = None, capacity: int = None):
     np.random.shuffle(population)
     parents1, parents2 = np.array_split(population, 2)
     children1, children2 = deepcopy(parents1), deepcopy(parents2)
@@ -104,8 +106,15 @@ def binary_crossover(population: np.ndarray, n_of_points: int = 1):
                         temp1.append(children1[i].vector[k][2+x_points[j]:])
                         temp2.append(children2[i].vector[k][2+x_points[j]:])
 
-            children1[i].vector[k] = ''.join(temp1)
-            children2[i].vector[k] = ''.join(temp2)
+            if data is not None:
+                init_vector1 = decrease_to_limit(''.join(temp1), (((data), capacity,),))
+                init_vector2 = decrease_to_limit(''.join(temp2), (((data), capacity,),))
+                children1[i].vector[k] = init_vector1
+                children2[i].vector[k] = init_vector2
+            else:
+                children1[i].vector[k] = ''.join(temp1)
+                children2[i].vector[k] = ''.join(temp2)
+
 
     return np.concatenate((children1, children2))
 
@@ -118,7 +127,7 @@ def ox_fill_empty_spots(v_: np.ndarray, parent_vector: np.ndarray, points: tuple
     v_[:points[0]] = v_seq_[len(v_[points[1]:]):]
 
 
-def ox(population: np.ndarray):
+def ox(population: np.ndarray, *args):
     np.random.shuffle(population)
     parents1, parents2 = np.array_split(population, 2)
     children1, children2 = deepcopy(parents1), deepcopy(parents2)
@@ -145,7 +154,7 @@ def cx_fill_vector(v_: np.ndarray, parent_vectors: tuple):
     v_[empty_idx] = parent_vectors[1][empty_idx]
 
 
-def cx(population: np.ndarray):
+def cx(population: np.ndarray, *args):
     np.random.shuffle(population)
     parents1, parents2 = np.array_split(population, 2)
     children1, children2 = deepcopy(parents1), deepcopy(parents2)

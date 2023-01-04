@@ -7,7 +7,7 @@ from test_functions import circle_function, quadratic_function, dummy, cross_in_
     rastrigin_function, salesman_function, knapsack_function
 from mutation import mutation_bin_gen, mutation_bin_fen, mutation_tri_fen, mutation_tri_gen, mutation_real_fen, \
     mutation_salesman_problem
-from crossover import pmx, arithmetic_crossover, mixed_crossover, binary_crossover
+from crossover import pmx, arithmetic_crossover, mixed_crossover, binary_crossover, cx, ox
 from substitution_strategy import full_sub_strategy, \
     part_reproduction_elite_sub_strategy, part_reproduction_random_sub_strategy, \
     part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy
@@ -15,6 +15,7 @@ from scaling import linear, sigma_clipping, exponential
 from wrappers import OptimizationTask, Coding, WrappedCallback
 from main import main
 from utils import read_tsp_data, read_knapsack_data
+import cv2
 
 
 class Config:
@@ -108,9 +109,12 @@ def salesman_test(config: Config, data: np.ndarray, target_x: list, target_y: fl
                             target_x=target_x, target_y=target_y, problem_type='salesman', args=(data,))
     result = main(task, *config.get())
     get_feedback(task, result)
+    return result
 
 
 def knapsack_test(config: Config, data: np.ndarray, capacity: int, target_x: list, target_y: float):
+    if target_y is None:
+        target_y = knapsack_function(np.asarray(target_x), data)
     task = OptimizationTask(knapsack_function, np.asarray([[0, 2**len(data)]]),
                             target_x=target_x, target_y=target_y, problem_type='knapsack', args=(data, capacity,))
     result = main(task, *config.get())
@@ -126,8 +130,8 @@ def test(function: bool = True, salesman: bool = True, knapsack: bool = True):
             WrappedCallback(arithmetic_crossover),
             WrappedCallback(mutation_real_fen),
             WrappedCallback(linear),
-            200,
-            30)
+            500,
+            10)
 
         cross_in_tray_test(config)
         bukin_test(config)
@@ -139,34 +143,41 @@ def test(function: bool = True, salesman: bool = True, knapsack: bool = True):
         rastrigin_test(config)
 
     if salesman:
-        config = Config(
-            Coding(dummy, dummy),
-            WrappedCallback(tournament_method),
-            WrappedCallback(part_reproduction_elite_sub_strategy),
-            WrappedCallback(pmx),
-            WrappedCallback(mutation_salesman_problem, parameters=(0.2,)),
-            WrappedCallback(linear),
-            100,
-            50)
+        for i in range(1, 21):
+            config = Config(
+                Coding(dummy, dummy),
+                WrappedCallback(tournament_method),
+                WrappedCallback(part_reproduction_random_sub_strategy),
+                WrappedCallback(ox),
+                WrappedCallback(mutation_salesman_problem, parameters=(0.2,)),
+                WrappedCallback(linear),
+                100*i,
+                30)
 
-        data = read_tsp_data("salesman/test1.tsp")
-        salesman_test(config, data, [], -1368)
+            print(i*100)
+            data = read_tsp_data("salesman/test1.tsp")
+            salesman_test(config, data, [], -1368)
         # data = read_tsp_data("salesman/simple.tsp")
         # salesman_test(config, data, [1, 2, 3, 4], -90)
 
     if knapsack:
-        config = Config(
-            Coding(dummy, dummy),
-            WrappedCallback(tournament_method),
-            WrappedCallback(part_reproduction_elite_sub_strategy),
-            WrappedCallback(binary_crossover),
-            WrappedCallback(mutation_bin_gen, parameters=(0.2,)),
-            WrappedCallback(linear),
-            500,
-            50)
 
-        data, capacity = read_knapsack_data("knapsack/test1.txt")
-        knapsack_test(config, data, capacity, [1, 1, 1, 1, 0, 1, 0, 0, 0, 0], 92 + 57 + 49 + 68 + 43)
+        for i in range(10):
+            config = Config(
+                Coding(dummy, dummy),
+                WrappedCallback(proportional_method),
+                WrappedCallback(part_reproduction_random_sub_strategy),
+                WrappedCallback(binary_crossover),
+                WrappedCallback(mutation_bin_gen, parameters=(0.2,)),
+                WrappedCallback(linear),
+                10 + 10*i,
+                10)
+            print(i * 100)
+            data, capacity = read_knapsack_data("knapsack/test1.txt")
+            knapsack_test(config, data, capacity, ['0b1111010000'], 309)
+
+        # data, capacity = read_knapsack_data("knapsack/hard_weights.txt")
+        # knapsack_test(config, data, capacity, ['0b110111000110100100000111'], None)
 
 
-test(function=False, salesman=False, knapsack=True)
+test(function=True, salesman=False, knapsack=False)

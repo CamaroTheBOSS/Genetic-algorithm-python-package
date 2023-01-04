@@ -14,7 +14,7 @@ from substitution_strategy import full_sub_strategy, \
     part_reproduction_similar_agents_gen_sub_strategy, part_reproduction_similar_agents_fen_sub_strategy
 from scaling import linear, sigma_clipping, exponential
 from wrappers import OptimizationTask, WrappedCallback, Coding
-from utils import read_tsp_data
+from utils import read_tsp_data, decrease_to_limit
 
 
 class Agent:
@@ -47,7 +47,7 @@ class Agent:
         return diff_counter
 
 
-def generate_starting_population(n_agents: int, limitations: np.ndarray, data_type: str = 'float') -> np.ndarray:
+def generate_starting_population(n_agents: int, limitations: np.ndarray, data_type: str = 'float', *args) -> np.ndarray:
     population = np.empty(n_agents, dtype=object)
     n_dimensions = len(limitations)
     for i in range(n_agents):
@@ -57,6 +57,10 @@ def generate_starting_population(n_agents: int, limitations: np.ndarray, data_ty
                 init_vector[j] = random.uniform(limit[0], limit[1])
             elif data_type == 'bin':
                 init_vector[j] = '0b'+''.join(np.random.randint(2, size=int(np.log2(limit[1]))).astype(str))
+
+        if data_type == 'bin':
+            init_vector = decrease_to_limit(init_vector, args)
+
         population[i] = Agent(init_vector, limitations)
 
     return population
@@ -113,20 +117,41 @@ def main(task: OptimizationTask,
     if task.problem_type == 'salesman':
         population = generate_starting_population_for_salesman_problem(n_agents, task.limits)
     elif task.problem_type == 'knapsack':
-        population = generate_starting_population(n_agents, task.limits, 'bin')
+        population = generate_starting_population(n_agents, task.limits, 'bin', task.parameters)
     else:
         population = generate_starting_population(n_agents, task.limits)
     calculate_fitness_function(population, task)
-
+    BESTX = np.copy(population[0].vector)
+    BESTY = population[0].fitness_value
     for i in range(1, iterations):
+        # print("----------")
+        # print(population)
         parents = selection_method(population, args=selection_method.parameters)
         coding(parents, args=coding.parameters)
-        children = crossover(parents, args=crossover.parameters)
-        mutation(children, args=(task.limits,) + mutation.parameters)
+        if task.problem_type == 'knapsack':
+            if crossover.parameters == ():
+                children = crossover(parents, args=(1, task.parameters[0], task.parameters[1]))
+            else:
+                children = crossover(parents, args=(crossover.parameters[0], task.parameters[0], task.parameters[1]))
+
+            if mutation.parameters == ():
+                mutation(children, args=(task.limits,) + mutation.parameters)
+            else:
+                mutation(children, args=(task.limits,) + mutation.parameters + task.parameters[:2])
+        else:
+            children = crossover(parents, args=(crossover.parameters,))
+            mutation(children, args=(task.limits,) + mutation.parameters)
         coding.decode(children, args=coding.parameters)
         coding.decode(parents, args=coding.parameters)
         calculate_fitness_function(children, task)
         scaling(population, args=(children,) + scaling.parameters)
         population = substitution_strategy(population, args=(children,) + substitution_strategy.parameters)
 
-    return get_best_from_population(population)
+        best = get_best_from_population(population)
+        if best.fitness_value > BESTY:
+            BESTY = best.fitness_value
+            BESTX = np.copy(best.vector)
+
+    best = Agent(BESTX, limitations=None)
+    best.fitness_value = BESTY
+    return best
